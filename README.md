@@ -1,5 +1,5 @@
 # INFORME
-[Informe ETL](https://github.com/DiegoRdrz/ETL)
+[Informe ETL](https://docs.google.com/document/d/1riNNTxp6XgctT9ooaYw2YByyfvXwraZi_qkSoxFuGho/edit?usp=sharing)
 
 # ETL Airbnb CDMX
 
