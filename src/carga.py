@@ -20,14 +20,20 @@ class Carga:
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         log_file = os.path.join(log_dir, f'carga_{timestamp}.log')
-        
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
-        )
-        self.logger = logging.getLogger(__name__)
-    
+
+        # Logger independiente
+        self.logger = logging.getLogger(f"carga_{timestamp}")
+        self.logger.setLevel(logging.INFO)
+
+        if not self.logger.handlers:
+            fh = logging.FileHandler(log_file)
+            ch = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            fh.setFormatter(formatter)
+            ch.setFormatter(formatter)
+            self.logger.addHandler(fh)
+            self.logger.addHandler(ch)
+
     def _crear_directorio(self):
         """Crea directorio data si no existe"""
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)

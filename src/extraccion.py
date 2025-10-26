@@ -23,13 +23,20 @@ class Extraccion:
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         log_file = os.path.join(log_dir, f'extraccion_{timestamp}.log')
-        
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
-        )
-        self.logger = logging.getLogger(__name__)
+
+        # Logger independiente
+        self.logger = logging.getLogger(f"extraccion_{timestamp}")
+        self.logger.setLevel(logging.INFO)
+
+        # Evita duplicar handlers si se instancia más de una vez
+        if not self.logger.handlers:
+            fh = logging.FileHandler(log_file)
+            ch = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            fh.setFormatter(formatter)
+            ch.setFormatter(formatter)
+            self.logger.addHandler(fh)
+            self.logger.addHandler(ch)
     
     def conectar(self):
         """Conecta a MongoDB"""
