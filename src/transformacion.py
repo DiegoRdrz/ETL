@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime
 import os
 import json
+import unicodedata
 
 
 class Transformacion:
@@ -37,7 +38,6 @@ class Transformacion:
         """Convierte columnas con listas/diccionarios a strings JSON para SQLite"""
         columnas_convertidas = []
         for col in df.columns:
-            # Verificar si la columna tiene listas o diccionarios
             if df[col].apply(lambda x: isinstance(x, (list, dict))).any():
                 df[col] = df[col].apply(lambda x: json.dumps(x) if isinstance(x, (list, dict)) else x)
                 columnas_convertidas.append(col)
@@ -63,11 +63,8 @@ class Transformacion:
     def limpiar_duplicados(self, df, subset=None):
         """Elimina duplicados, manejando columnas con listas/diccionarios"""
         antes = len(df)
-        
-        # Si no se especifica subset, eliminar columnas problemáticas
         if subset is None:
             df = self._eliminar_columnas_no_hashables(df)
-        
         df = df.drop_duplicates(subset=subset)
         despues = len(df)
         self.logger.info(f"Duplicados eliminados: {antes - despues}")
@@ -114,25 +111,38 @@ class Transformacion:
                                            labels=['Bajo', 'Medio', 'Alto', 'Premium'])
             self.logger.info("Precios categorizados")
         return df
+
+    # NUEVA FUNCIÓN
+    def normalizar_texto_comments(self, df):
+        """Normaliza texto en la columna comments, incluyendo ñ y tildes"""
+        if 'comments' in df.columns:
+            def _normalize(texto):
+                if not isinstance(texto, str):
+                    return texto
+                # Normaliza caracteres Unicode (mantiene ñ y tildes)
+                texto = unicodedata.normalize('NFKC', texto)
+                # Elimina caracteres no imprimibles
+                texto = ''.join(c for c in texto if c.isprintable())
+                return texto.strip()
+            
+            df['comments'] = df['comments'].apply(_normalize)
+            self.logger.info("Columna comments normalizada (ñ y tildes conservadas)")
+        return df
     
     def transformar_listings(self, df):
         """Aplica todas las transformaciones a listings"""
         self.logger.info(f"Transformando listings: {len(df)} registros")
         
-        # Eliminar _id de MongoDB si existe
         if '_id' in df.columns:
             df = df.drop(columns=['_id'])
             self.logger.info("Columna _id eliminada")
         
-        # Usar 'id' para detectar duplicados si existe
         subset_duplicados = ['id'] if 'id' in df.columns else None
         df = self.limpiar_duplicados(df, subset=subset_duplicados)
         
         df = self.limpiar_nulos(df)
         df = self.normalizar_precio(df, 'price')
         df = self.categorizar_precio(df, 'price')
-        
-        # Convertir listas/diccionarios a JSON para SQLite
         df = self._convertir_listas_a_json(df)
         
         self.logger.info(f"Listings transformado: {len(df)} registros finales")
@@ -142,20 +152,26 @@ class Transformacion:
         """Aplica transformaciones a reviews"""
         self.logger.info(f"Transformando reviews: {len(df)} registros")
         
-        # Eliminar _id de MongoDB si existe
         if '_id' in df.columns:
             df = df.drop(columns=['_id'])
             self.logger.info("Columna _id eliminada")
         
-        # Usar 'id' para detectar duplicados si existe
+        if 'comments' in df.columns:
+            df['comments'] = df['comments'].astype(str).str.replace('<br/>', ' ', regex=False)
+            df['comments'] = df['comments'].str.replace('<br>', ' ', regex=False)
+            df['comments'] = df['comments'].str.replace('\n', ' ', regex=False)
+            df['comments'] = df['comments'].str.replace('\r', ' ', regex=False)
+            self.logger.info("Columna comments limpiada de caracteres HTML")
+            
+            # NUEVO: normalizar caracteres especiales (ñ, tildes, etc.)
+            df = self.normalizar_texto_comments(df)
+        
         subset_duplicados = ['id'] if 'id' in df.columns else None
         df = self.limpiar_duplicados(df, subset=subset_duplicados)
         
-        # Limpiar nulos (aunque reviews tiene pocos)
-        df = self.limpiar_nulos(df)
-        
         df = self.convertir_fechas(df, 'date')
         df = self.derivar_variables_fecha(df, 'date')
+        
         self.logger.info(f"Reviews transformado: {len(df)} registros finales")
         return df
     
@@ -163,20 +179,15 @@ class Transformacion:
         """Aplica transformaciones a calendar"""
         self.logger.info(f"Transformando calendar: {len(df)} registros")
         
-        # Eliminar _id de MongoDB si existe
         if '_id' in df.columns:
             df = df.drop(columns=['_id'])
             self.logger.info("Columna _id eliminada")
         
-        # Usar combinación de listing_id y date para duplicados
         subset_duplicados = ['listing_id', 'date'] if 'listing_id' in df.columns and 'date' in df.columns else None
         df = self.limpiar_duplicados(df, subset=subset_duplicados)
         
-        # Limpiar nulos
-        df = self.limpiar_nulos(df)
-        
         df = self.convertir_fechas(df, 'date')
         df = self.derivar_variables_fecha(df, 'date')
-        # Calendar no tiene columna price, solo available, minimum_nights, maximum_nights
+        
         self.logger.info(f"Calendar transformado: {len(df)} registros finales")
         return df
