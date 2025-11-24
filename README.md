@@ -1,5 +1,8 @@
 # INFORME
-[Informe ETL](https://docs.google.com/document/d/1riNNTxp6XgctT9ooaYw2YByyfvXwraZi_qkSoxFuGho/edit?usp=sharing)
+
+[Informe ETL](https://docs.google.com/document/d/1riNNTxp6XgctT9ooaYw2YByyfvXwraZi_qkSoxFuGho/edit?usp=sharing) Taller 2
+
+[Informe ETL ML](https://docs.google.com/document/d/1uej3OoBZzbXf_cKlJySMJ3MUDMVWSNzhDG2W7XUDDic/edit?usp=sharing) Taller Final
 
 # ETL Airbnb CDMX
 
@@ -101,6 +104,20 @@ El notebook incluye:
 - `data/listings_limpio.xlsx` - Propiedades procesadas
 - `data/reviews_muestra.xlsx` - Muestra de 10,000 reviews
 
+## Extensión del Proyecto: Visualización y Modelos de Machine Learning
+
+## Taller Final
+
+A partir de la base de datos procesada en `data/airbnb.db` se desarrolló una capa adicional de análisis que integra **visualización interactiva** y **modelos de Machine Learning** para responder preguntas de negocio sobre el mercado de Airbnb en Ciudad de México.
+
+En la carpeta [notebooks/](cci:7://file:///c:/Users/DiegoRdrz/Desktop/code/ETL/notebooks:0:0-0:0) se añadieron tres cuadernos Jupyter:
+
+- [1_Regresion.ipynb](cci:7://file:///c:/Users/DiegoRdrz/Desktop/code/ETL/notebooks/1_Regresion.ipynb:0:0-0:0): modelo de **regresión** (Random Forest Regressor) para estimar el precio por noche a partir de características del alojamiento, su ubicación y su historial de reseñas.
+- [2_Clasificacion.ipynb](cci:7://file:///c:/Users/DiegoRdrz/Desktop/code/ETL/notebooks/2_Clasificacion.ipynb:0:0-0:0): modelo de **clasificación** (Logistic Regression) para analizar el nivel de demanda de los listings usando `number_of_reviews` como proxy.
+- [3_Clustering.ipynb](cci:7://file:///c:/Users/DiegoRdrz/Desktop/code/ETL/notebooks/3_Clustering.ipynb:0:0-0:0): modelo de **clustering** (K-Means) para segmentar las propiedades en grupos homogéneos (estándar, premium y estancias largas) según precio, tamaño, disponibilidad y localización.
+
+Adicionalmente, se creó la carpeta `visualizacion/`, donde se puede incluir el tablero de **Power BI** construido a partir del dataset resultante del ETL. Este tablero contiene visualizaciones clave para cada pregunta de negocio (relación entre capacidad y precio, demanda por categoría de precio y concentración geográfica de alojamientos de alto valor), lo que permite explorar de forma interactiva los hallazgos obtenidos en los notebooks de ML y facilitar la toma de decisiones basada en datos.
+
 ## Tecnologías
 
 - Python 3.x
@@ -109,3 +126,5 @@ El notebook incluye:
 - SQLite3
 - Matplotlib/Seaborn
 - Jupyter Notebook
+- scikit-learn
+- NumPy
