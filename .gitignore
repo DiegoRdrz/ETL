@@ -49,3 +49,6 @@ tmp/
 temp/
 *.tmp
 
+# Extras
+/Contexto trabajos
+
